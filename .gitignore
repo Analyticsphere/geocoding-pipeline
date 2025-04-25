@@ -1,0 +1,5 @@
+# Ignore exports directory
+exports/
+debug/
+*.DS_Store
+*/__pycache__/
