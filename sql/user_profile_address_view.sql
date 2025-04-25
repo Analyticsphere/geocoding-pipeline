@@ -4,7 +4,7 @@
 -- =========================================================================
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '207908218' AS address_src_question_cid,
     'user_profile_physical_address' AS address_nickname,
@@ -44,7 +44,7 @@ UNION ALL
 -- =========================================================================
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '521824358' AS address_src_question_cid,
     'user_profile_mailing_address' AS address_nickname,
@@ -85,7 +85,7 @@ UNION ALL
 -- =========================================================================
 SELECT
   CAST(Connect_ID AS STRING) AS Connect_ID,                         
-  ts_user_profile_submitted,
+  ts_user_profile_updated,
   CURRENT_TIMESTAMP() AS ts_address_delivered,
   '207908218' AS address_src_question_cid,
   'user_profile_physical_address' AS address_nickname,
@@ -106,7 +106,7 @@ FROM (
   -- Subquery to extract and prepare the data from the repeated field
   SELECT
     Connect_ID,
-    d_430551721 AS ts_user_profile_submitted,
+    element.d_371303487 AS ts_user_profile_updated,
     element_position,
     -- Physical address fields
     element.d_207908218 AS address_line_1,
@@ -141,7 +141,7 @@ UNION ALL
 -- =========================================================================
 SELECT
   CAST(Connect_ID AS STRING) AS Connect_ID,
-  ts_user_profile_submitted,
+  ts_user_profile_updated,
   CURRENT_TIMESTAMP() AS ts_address_delivered,
   '521824358' AS address_src_question_cid,
   'user_profile_mailing_address' AS address_nickname,
@@ -162,7 +162,7 @@ FROM (
   -- Subquery to extract and prepare the data from the repeated field
   SELECT
     Connect_ID,
-    d_430551721 AS ts_user_profile_submitted,
+    element.d_371303487 AS ts_user_profile_updated,
     element_position,
     -- Physical address fields (to check if empty)
     element.d_207908218,
@@ -202,7 +202,7 @@ UNION ALL
 
 SELECT 
   CAST(Connect_ID AS STRING) AS Connect_ID,
-  NULL AS ts_user_profile_submitted,
+  NULL AS ts_user_profile_updated,
   CURRENT_TIMESTAMP() AS ts_address_delivered,
   '284580415' AS address_src_question_cid,
   'user_profile_alternative_address' AS address_nickname,
@@ -242,7 +242,7 @@ UNION ALL
 
 SELECT
   CAST(Connect_ID AS STRING) AS Connect_ID,
-  ts_user_profile_submitted,
+  ts_user_profile_updated,
   CURRENT_TIMESTAMP() AS ts_address_delivered,
   '284580415' AS address_src_question_cid,
   'user_profile_alternative_address' AS address_nickname,
@@ -263,7 +263,7 @@ FROM (
   -- Subquery to extract and prepare the data from the repeated field
   SELECT
     Connect_ID,
-    d_430551721 AS ts_user_profile_submitted,
+    element.d_371303487 AS ts_user_profile_updated,
     element_position,
     element.D_284580415 AS address_line_1,
     element.D_728926441 AS address_line_2,

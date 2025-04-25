@@ -9,7 +9,7 @@ def create_required_tables(client):
     """Create required tables if they don't exist"""
     logger.info("Creating required tables if they don't exist")
     
-    # Create metadata table - no changes needed here
+    # Create metadata table - add address_hash column
     metadata_table = constants.METADATA_TABLE
     metadata_table_query = f"""
     CREATE TABLE IF NOT EXISTS {metadata_table} (
@@ -18,6 +18,7 @@ def create_required_tables(client):
         Connect_ID STRING,
         address_src_question_cid STRING,
         address_nickname STRING,
+        address_hash STRING,  -- Add address_hash column
         ts_address_delivered TIMESTAMP
     )
     """
@@ -29,7 +30,7 @@ def create_required_tables(client):
         delivery_id STRING,
         delivery_date TIMESTAMP,
         Connect_ID STRING,
-        ts_user_profile_submitted TIMESTAMP,
+        ts_user_profile_updated TIMESTAMP,
         address_src_question_cid STRING,
         address_nickname STRING,
         address_source STRING,
@@ -56,7 +57,7 @@ def create_required_tables(client):
         delivery_id STRING,
         delivery_date TIMESTAMP,
         Connect_ID STRING,
-        ts_user_profile_submitted TIMESTAMP,
+        ts_user_profile_updated TIMESTAMP,
         address_src_question_cid STRING,
         address_nickname STRING,
         address_source STRING,
@@ -175,24 +176,50 @@ def identify_new_addresses(client, delivery_id):
     addresses_view = constants.ADDRESSES_VIEW
     current_delivery_table = constants.CURRENT_DELIVERY_TABLE
     
-    # Step 1: Get list of new addresses (using query parameters)
+    # Step 1: Get list of new addresses using a hash for uniqueness
     find_query = f"""
-    WITH already_delivered AS (
-      SELECT DISTINCT
+    WITH address_hashes AS (
+      SELECT
         Connect_ID,
-        address_src_question_cid
+        address_src_question_cid,
+        address_nickname,
+        -- Create a hash of all address fields to uniquely identify each address
+        TO_HEX(MD5(CONCAT(
+          IFNULL(Connect_ID, ''),
+          IFNULL(address_src_question_cid, ''),
+          IFNULL(address_nickname, ''),
+          IFNULL(address_line_1, ''),
+          IFNULL(address_line_2, ''),
+          IFNULL(street_num, ''),
+          IFNULL(street_name, ''),
+          IFNULL(apartment_num, ''),
+          IFNULL(city, ''),
+          IFNULL(state, ''),
+          IFNULL(zip_code, ''),
+          IFNULL(country, ''),
+          IFNULL(cross_street_1, ''),
+          IFNULL(cross_street_2, '')
+        ))) AS address_hash
+      FROM {addresses_view}
+    ),
+    already_delivered_hashes AS (
+      SELECT DISTINCT address_hash
       FROM {metadata_table}
     )
     
     SELECT
       a.*,
+      h.address_hash,
       @delivery_id AS delivery_id,
       CURRENT_TIMESTAMP() AS delivery_date
     FROM {addresses_view} a
-    LEFT JOIN already_delivered d
-      ON a.Connect_ID = d.Connect_ID 
-      AND a.address_src_question_cid = d.address_src_question_cid
-    WHERE d.Connect_ID IS NULL
+    JOIN address_hashes h
+      ON a.Connect_ID = h.Connect_ID 
+      AND a.address_src_question_cid = h.address_src_question_cid
+      AND a.address_nickname = h.address_nickname
+    LEFT JOIN already_delivered_hashes d
+      ON h.address_hash = d.address_hash
+    WHERE d.address_hash IS NULL
     """
     
     job_config = bigquery.QueryJobConfig(
@@ -239,7 +266,7 @@ def update_metadata(client, delivery_id):
     comprehensive_table = constants.COMPREHENSIVE_TABLE
     current_delivery_table = constants.CURRENT_DELIVERY_TABLE
     
-    # Insert into metadata table
+    # Insert into metadata table - include address_hash
     metadata_query = f"""
     INSERT INTO {metadata_table} (
       delivery_id,
@@ -247,6 +274,7 @@ def update_metadata(client, delivery_id):
       Connect_ID,
       address_src_question_cid,
       address_nickname,
+      address_hash,  -- Include address_hash in metadata
       ts_address_delivered
     )
     SELECT 
@@ -255,6 +283,7 @@ def update_metadata(client, delivery_id):
       Connect_ID,
       address_src_question_cid,
       address_nickname,
+      address_hash,  -- Include address_hash in the SELECT
       ts_address_delivered
     FROM {current_delivery_table}
     """
@@ -272,7 +301,7 @@ def update_metadata(client, delivery_id):
         column_list.append(column_name)
         
         # Check if the column exists in current_delivery_table
-        if column_name in ["delivery_id", "delivery_date", "Connect_ID", "ts_user_profile_submitted",
+        if column_name in ["delivery_id", "delivery_date", "Connect_ID", "ts_user_profile_updated",
                           "address_src_question_cid", "address_nickname", "address_source",
                           "ts_address_delivered", "historical_order", 
                           "address_line_1", "address_line_2", "street_num", "street_name", 

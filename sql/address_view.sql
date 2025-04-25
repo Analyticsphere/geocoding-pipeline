@@ -1,6 +1,6 @@
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '121490150' AS address_src_question_cid,
     'home_address_01' AS address_nickname,
@@ -23,7 +23,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '574985342' AS address_src_question_cid,
     'home_address_02' AS address_nickname,
@@ -46,7 +46,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '828086036' AS address_src_question_cid,
     'home_address_03' AS address_nickname,
@@ -69,7 +69,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '680046149' AS address_src_question_cid,
     'home_address_04' AS address_nickname,
@@ -92,7 +92,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '274189667' AS address_src_question_cid,
     'home_address_05' AS address_nickname,
@@ -115,7 +115,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '113930886' AS address_src_question_cid,
     'home_address_06' AS address_nickname,
@@ -138,7 +138,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '809728747' AS address_src_question_cid,
     'home_address_07' AS address_nickname,
@@ -161,7 +161,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '539057792' AS address_src_question_cid,
     'home_address_08' AS address_nickname,
@@ -184,7 +184,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '537011756' AS address_src_question_cid,
     'home_address_09' AS address_nickname,
@@ -207,7 +207,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '171937884' AS address_src_question_cid,
     'home_address_10' AS address_nickname,
@@ -230,7 +230,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '828766803' AS address_src_question_cid,
     'home_address_11' AS address_nickname,
@@ -253,7 +253,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '376408004' AS address_src_question_cid,
     'seasonal_address_01' AS address_nickname,
@@ -276,7 +276,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '279093430' AS address_src_question_cid,
     'seasonal_address_02' AS address_nickname,
@@ -299,7 +299,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '143927994' AS address_src_question_cid,
     'seasonal_address_03' AS address_nickname,
@@ -322,7 +322,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '935378391' AS address_src_question_cid,
     'seasonal_address_04' AS address_nickname,
@@ -345,7 +345,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '320166033' AS address_src_question_cid,
     'seasonal_address_05' AS address_nickname,
@@ -368,7 +368,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '383535171' AS address_src_question_cid,
     'seasonal_address_06' AS address_nickname,
@@ -391,7 +391,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '133566757' AS address_src_question_cid,
     'seasonal_address_07' AS address_nickname,
@@ -414,7 +414,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '509553290' AS address_src_question_cid,
     'seasonal_address_08' AS address_nickname,
@@ -437,7 +437,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '239279719' AS address_src_question_cid,
     'seasonal_address_09' AS address_nickname,
@@ -460,7 +460,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '778711683' AS address_src_question_cid,
     'seasonal_address_10' AS address_nickname,
@@ -483,7 +483,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '632533534' AS address_src_question_cid,
     'childhood_address_01' AS address_nickname,
@@ -506,7 +506,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '596318751' AS address_src_question_cid,
     'current_work_address_01' AS address_nickname,
@@ -529,7 +529,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '992180692' AS address_src_question_cid,
     'previous_work_address_01' AS address_nickname,
@@ -552,7 +552,7 @@ UNION ALL
 
 SELECT
     CAST(Connect_ID AS STRING) AS Connect_ID,
-    NULL AS ts_user_profile_submitted,
+    NULL AS ts_user_profile_updated,
     CURRENT_TIMESTAMP() AS ts_address_delivered,
     '914696832' AS address_src_question_cid,
     'school_address_01' AS address_nickname,
