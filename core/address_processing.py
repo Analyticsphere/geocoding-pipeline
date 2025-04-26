@@ -19,7 +19,10 @@ def create_required_tables(client):
         address_src_question_cid STRING,
         address_nickname STRING,
         address_hash STRING,  -- Add address_hash column
-        ts_address_delivered TIMESTAMP
+        ts_address_delivered TIMESTAMP,
+        address_source STRING,
+        historical_order INT64,
+        ts_user_profile_updated TIMESTAMP
     )
     """
     
@@ -121,23 +124,73 @@ def create_address_view(client):
 
     view_query = f"""
     CREATE OR REPLACE VIEW {view_name} AS
-    SELECT * FROM (
-        {combined_query}
+    -- Create a common table expression (CTE) for address standardization
+    WITH standardized_addresses AS (
+        SELECT
+            -- Consistent ID and metadata fields
+            CAST(Connect_ID AS STRING) AS Connect_ID,
+            CAST(ts_user_profile_updated AS TIMESTAMP) AS ts_user_profile_updated,
+            CAST(ts_address_delivered AS TIMESTAMP) AS ts_address_delivered,
+            CAST(address_src_question_cid AS STRING) AS address_src_question_cid,
+            CAST(address_nickname AS STRING) AS address_nickname,
+            CAST(address_source AS STRING) AS address_source,
+            CAST(historical_order AS INT64) AS historical_order,
+            
+            -- Address fields with standardization
+            -- Trim whitespace and convert empty strings to NULL
+            NULLIF(TRIM(CAST(address_line_1 AS STRING)), '') AS address_line_1,
+            NULLIF(TRIM(CAST(address_line_2 AS STRING)), '') AS address_line_2,
+            NULLIF(TRIM(CAST(street_num AS STRING)), '') AS street_num,
+            NULLIF(TRIM(CAST(street_name AS STRING)), '') AS street_name,
+            NULLIF(TRIM(CAST(apartment_num AS STRING)), '') AS apartment_num,
+            NULLIF(TRIM(CAST(city AS STRING)), '') AS city,
+            NULLIF(TRIM(CAST(state AS STRING)), '') AS state,
+            NULLIF(TRIM(CAST(zip_code AS STRING)), '') AS zip_code,
+            NULLIF(TRIM(CAST(country AS STRING)), '') AS country,
+            NULLIF(TRIM(CAST(cross_street_1 AS STRING)), '') AS cross_street_1,
+            NULLIF(TRIM(CAST(cross_street_2 AS STRING)), '') AS cross_street_2
+        FROM (
+            -- Insert your existing combined query here (module4_query UNION ALL user_profile_query)
+            {combined_query}
+        ) subquery
     )
+
+    -- Main view definition
+    SELECT *,
+    -- Add a computed hash field to help with deduplication
+    TO_HEX(MD5(CONCAT(
+        IFNULL(Connect_ID, ''),
+        IFNULL(address_src_question_cid, ''),
+        IFNULL(address_nickname, ''),
+        IFNULL(address_source, ''),
+        IFNULL(address_line_1, ''),
+        IFNULL(address_line_2, ''),
+        IFNULL(street_num, ''),
+        IFNULL(street_name, ''),
+        IFNULL(apartment_num, ''),
+        IFNULL(city, ''),
+        IFNULL(state, ''),
+        IFNULL(zip_code, ''),
+        IFNULL(country, ''),
+        IFNULL(cross_street_1, ''),
+        IFNULL(cross_street_2, '')
+    ))) AS address_hash
+    FROM standardized_addresses
     WHERE
-        (
-            (street_num IS NOT NULL AND street_num != '') OR
-            (street_name IS NOT NULL AND street_name != '') OR
-            (apartment_num IS NOT NULL AND apartment_num != '') OR
-            (city IS NOT NULL AND city != '') OR
-            (state IS NOT NULL AND state != '') OR
-            (zip_code IS NOT NULL AND zip_code != '') OR
-            (country IS NOT NULL AND country != '') OR
-            (cross_street_1 IS NOT NULL AND cross_street_1 != '') OR
-            (cross_street_2 IS NOT NULL AND cross_street_2 != '') OR
-            (address_line_1 IS NOT NULL AND address_line_1 != '') OR
-            (address_line_2 IS NOT NULL AND address_line_2 != '')
-        )
+    -- Only include records with at least one address field populated
+    (
+        address_line_1 IS NOT NULL OR
+        address_line_2 IS NOT NULL OR
+        street_num IS NOT NULL OR
+        street_name IS NOT NULL OR
+        apartment_num IS NOT NULL OR
+        city IS NOT NULL OR
+        state IS NOT NULL OR
+        zip_code IS NOT NULL OR
+        country IS NOT NULL OR
+        cross_street_1 IS NOT NULL OR
+        cross_street_2 IS NOT NULL
+    )
     """
 
     # Save the query for debugging
@@ -168,49 +221,20 @@ def identify_new_addresses(client, delivery_id):
     addresses_view = constants.ADDRESSES_VIEW
     current_delivery_table = constants.CURRENT_DELIVERY_TABLE
     
-    # Step 1: Get list of new addresses using a hash for uniqueness
+    # Since address_hash already exists in the view, use it directly
     find_query = f"""
-    WITH address_hashes AS (
-      SELECT
-        Connect_ID,
-        address_src_question_cid,
-        address_nickname,
-        -- Create a hash of all address fields to uniquely identify each address
-        TO_HEX(MD5(CONCAT(
-          IFNULL(Connect_ID, ''),
-          IFNULL(address_src_question_cid, ''),
-          IFNULL(address_nickname, ''),
-          IFNULL(address_line_1, ''),
-          IFNULL(address_line_2, ''),
-          IFNULL(street_num, ''),
-          IFNULL(street_name, ''),
-          IFNULL(apartment_num, ''),
-          IFNULL(city, ''),
-          IFNULL(state, ''),
-          IFNULL(zip_code, ''),
-          IFNULL(country, ''),
-          IFNULL(cross_street_1, ''),
-          IFNULL(cross_street_2, '')
-        ))) AS address_hash
-      FROM {addresses_view}
-    ),
-    already_delivered_hashes AS (
+    WITH already_delivered_hashes AS (
       SELECT DISTINCT address_hash
       FROM {metadata_table}
     )
     
     SELECT
       a.*,
-      h.address_hash,
       @delivery_id AS delivery_id,
       CURRENT_TIMESTAMP() AS delivery_date
     FROM {addresses_view} a
-    JOIN address_hashes h
-      ON a.Connect_ID = h.Connect_ID 
-      AND a.address_src_question_cid = h.address_src_question_cid
-      AND a.address_nickname = h.address_nickname
     LEFT JOIN already_delivered_hashes d
-      ON h.address_hash = d.address_hash
+      ON a.address_hash = d.address_hash
     WHERE d.address_hash IS NULL
     """
     
@@ -226,6 +250,15 @@ def identify_new_addresses(client, delivery_id):
     # Use destination table to store results
     job_config.destination = temp_table_id
     job_config.write_disposition = "WRITE_TRUNCATE"
+    
+    # Save the query for debugging
+    debug_dir = os.path.join(os.getcwd(), 'debug')
+    os.makedirs(debug_dir, exist_ok=True)
+    
+    with open(os.path.join(debug_dir, 'identify_new_addresses_query.sql'), 'w') as f:
+        f.write(find_query)
+    
+    logger.info(f"SQL query saved to {os.path.join(debug_dir, 'identify_new_addresses_query.sql')} for debugging")
     
     job = client.query(find_query, job_config=job_config, timeout=constants.QUERY_TIMEOUT)
     job.result()
@@ -258,7 +291,7 @@ def update_metadata(client, delivery_id):
     comprehensive_table = constants.COMPREHENSIVE_TABLE
     current_delivery_table = constants.CURRENT_DELIVERY_TABLE
     
-    # Insert into metadata table - include address_hash
+    # Insert into metadata table - include all fields
     metadata_query = f"""
     INSERT INTO {metadata_table} (
       delivery_id,
@@ -266,8 +299,11 @@ def update_metadata(client, delivery_id):
       Connect_ID,
       address_src_question_cid,
       address_nickname,
-      address_hash,  -- Include address_hash in metadata
-      ts_address_delivered
+      address_hash,
+      ts_address_delivered,
+      address_source,
+      historical_order,
+      ts_user_profile_updated
     )
     SELECT 
       delivery_id,
@@ -275,8 +311,11 @@ def update_metadata(client, delivery_id):
       Connect_ID,
       address_src_question_cid,
       address_nickname,
-      address_hash,  -- Include address_hash in the SELECT
-      ts_address_delivered
+      address_hash,
+      ts_address_delivered,
+      address_source,
+      historical_order,
+      ts_user_profile_updated
     FROM {current_delivery_table}
     """
     
@@ -295,7 +334,7 @@ def update_metadata(client, delivery_id):
         # Check if the column exists in current_delivery_table
         if column_name in ["delivery_id", "delivery_date", "Connect_ID", "ts_user_profile_updated",
                           "address_src_question_cid", "address_nickname", "address_source",
-                          "ts_address_delivered", "historical_order", 
+                          "ts_address_delivered", "historical_order", "address_hash",
                           "address_line_1", "address_line_2", "street_num", "street_name", 
                           "apartment_num", "city", "state", "zip_code", "country", 
                           "cross_street_1", "cross_street_2"]:
