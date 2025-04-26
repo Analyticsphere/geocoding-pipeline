@@ -119,34 +119,26 @@ def create_address_view(client):
     {user_profile_query}
     """
 
-    
     view_query = f"""
-CREATE OR REPLACE VIEW {view_name} AS
-SELECT * FROM (
-    {combined_query}
-)
-WHERE
-    (street_num IS NOT NULL
-    OR street_name IS NOT NULL
-    OR apartment_num IS NOT NULL
-    OR city IS NOT NULL
-    OR state IS NOT NULL
-    OR zip_code IS NOT NULL
-    OR country IS NOT NULL
-    OR cross_street_1 IS NOT NULL
-    OR cross_street_2 IS NOT NULL
-    OR address_line_1 IS NOT NULL
-    OR address_line_2 IS NOT NULL)
-    AND Connect_ID IN (
-        SELECT CAST(Connect_ID AS STRING)
-        FROM {constants.RAW_PARTICIPANTS_TABLE}
-        WHERE
-            d_821247024 = 197316935 -- Verification status = verified
-            AND d_831041022 = 104430631 -- Data destruction requested = no
-            AND d_663265240 = 231311385 -- Module 4 is complete
+    CREATE OR REPLACE VIEW {view_name} AS
+    SELECT * FROM (
+        {combined_query}
+    )
+    WHERE
+        (
+            (street_num IS NOT NULL AND street_num != '') OR
+            (street_name IS NOT NULL AND street_name != '') OR
+            (apartment_num IS NOT NULL AND apartment_num != '') OR
+            (city IS NOT NULL AND city != '') OR
+            (state IS NOT NULL AND state != '') OR
+            (zip_code IS NOT NULL AND zip_code != '') OR
+            (country IS NOT NULL AND country != '') OR
+            (cross_street_1 IS NOT NULL AND cross_street_1 != '') OR
+            (cross_street_2 IS NOT NULL AND cross_street_2 != '') OR
+            (address_line_1 IS NOT NULL AND address_line_1 != '') OR
+            (address_line_2 IS NOT NULL AND address_line_2 != '')
         )
-ORDER BY Connect_ID, address_nickname
-"""
+    """
 
     # Save the query for debugging
     debug_dir = os.path.join(os.getcwd(), 'debug')
@@ -391,10 +383,16 @@ def export_addresses(client, delivery_id, local_export=False, local_dir=None):
         job_config = bigquery.QueryJobConfig()
         df = client.query(query, job_config=job_config, timeout=constants.QUERY_TIMEOUT).to_dataframe()
         
-        # Save to CSV
-        local_file_path = os.path.join(local_dir, f'norc_addresses_{delivery_date}.csv')
-        df.to_csv(local_file_path, index=False)
-        
+        # Convert timezone-aware datetime columns to timezone-naive
+        for col in df.select_dtypes(include=['datetime64[ns, UTC]']).columns:
+            df[col] = df[col].dt.tz_localize(None)
+
+        # Sort the data
+        df.sort_values(by=['Connect_ID', 'address_nickname', 'historical_order'])
+
+        # Save to Excel file
+        local_file_path = os.path.join(local_dir, f'norc_addresses_{delivery_date}.xlsx')
+        df.to_excel(local_file_path, index=False, engine='xlsxwriter')
         logger.info(f"Addresses exported successfully to {local_file_path}")
         return local_file_path
     
